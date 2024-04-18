@@ -457,7 +457,7 @@ function gen_cost_per_step_table(processed_results, modes_sorted; property=:tota
     end
     if haskey(cost_table_old, (2, "b"))
         full_cost_table["N", "S"] = cost_table_old[2, "b"]
-    end
+    end  
     if haskey(cost_table_old, (3, "a"))
         full_cost_table["N", "N"] = cost_table_old[3, "a"]
     end

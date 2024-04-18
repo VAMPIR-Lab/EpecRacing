@@ -49,7 +49,8 @@ include("gen_boxplot.jl")
 include("gen_running_cost_plot.jl")
 
 # to visualize:
-#mode = 3;
-#sample = rand(1:sample_size);
-#road = roads[sample];
-#EpecRacing.animate(params, results[mode][sample]; save=false, mode, road);
+mode = 3;
+sample = rand(1:sample_size);
+road = roads[sample];
+EpecRacing.animate(params, results[mode][sample]; save=false, mode, road);
+
