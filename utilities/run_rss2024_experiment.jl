@@ -11,7 +11,7 @@ P2:			NE  2  3
 	 P2-Leader  4  5  6 
    P2-Follower  7  8  9			10
 ```
-experiment_modes = [3, 9] # 1:10
+experiment_modes = [9] # 1:10
 probs, x0s, roads, params, experiment_fname = create_experiment(sample_size;
     experiment_fname=nothing,
     T=10,
