@@ -1,3 +1,51 @@
+
+#2024-04-18
+
+function print_mean_min_max(Δcost)
+    println("		mean		stderrmin			max")
+    println("P1 Δcost abs :  $(mean(Δcost.P1_abs))  $(std(Δcost.P1_abs)/sqrt(length(Δcost.P1_abs)))  $(minimum(Δcost.P1_abs))  $(maximum(Δcost.P1_abs))")
+    println("P2 Δcost abs :  $(mean(Δcost.P2_abs))  $(std(Δcost.P2_abs)/sqrt(length(Δcost.P2_abs)))  $(minimum(Δcost.P2_abs))  $(maximum(Δcost.P2_abs))")
+    println("P1 Δcost rel%:  $(mean(Δcost.P1_rel) * 100)  $(std(Δcost.P1_rel)/sqrt(length(Δcost.P1_rel)) * 100)  $(minimum(Δcost.P1_rel) * 100)  $(maximum(Δcost.P1_rel) * 100)")
+    println("P2 Δcost rel%:  $(mean(Δcost.P2_rel) * 100)  $(std(Δcost.P2_rel)/sqrt(length(Δcost.P2_rel)) * 100)  $(minimum(Δcost.P2_rel) * 100)  $(maximum(Δcost.P2_rel) * 100)")
+end
+
+@info "terminal cost mean CI min max"
+for mode in modes_sorted
+    res = results[mode]
+    inds = res.costs |> keys |> collect |> sort
+    b_steps = [res.steps[i] for i in inds]
+    b_total_costs = [res.costs[i].b.final.terminal for i in inds]
+    a_steps = [res.steps[i] for i in inds]
+    a_total_costs = [res.costs[i].a.final.terminal for i in inds]
+    print_mean_min_max(a_total_costs ./ a_steps; title="mode $(mode) a", scale=100)
+    print_mean_min_max(b_total_costs ./ b_steps; title="mode $(mode) b", scale=100)
+end
+
+@info "velocity cost mean CI min max"
+for mode in modes_sorted
+    res = results[mode]
+    inds = res.costs |> keys |> collect |> sort
+    b_steps = [res.steps[i] for i in inds]
+    b_total_costs = [res.costs[i].b.final.velocity for i in inds]
+    a_steps = [res.steps[i] for i in inds]
+    a_total_costs = [res.costs[i].a.final.velocity for i in inds]
+    print_mean_min_max(a_total_costs ./ a_steps; title="mode $(mode) a", scale=100)
+    print_mean_min_max(b_total_costs ./ b_steps; title="mode $(mode) b", scale=100)
+end
+
+@info "control cost mean CI min max"
+for mode in modes_sorted
+    res = results[mode]
+    inds = res.costs |> keys |> collect |> sort
+    b_steps = [res.steps[i] for i in inds]
+    b_total_costs = [res.costs[i].b.final.control for i in inds]
+    a_steps = [res.steps[i] for i in inds]
+    a_total_costs = [res.costs[i].a.final.control for i in inds]
+    print_mean_min_max(a_total_costs ./ a_steps; title="mode $(mode) a", scale=100)
+    print_mean_min_max(b_total_costs ./ b_steps; title="mode $(mode) b", scale=100)
+end
+
+
 # 2024-04-17
 
 # Z := [xᵃ₁ ... xᵃₜ | uᵃ₁ ... uᵃₜ | xᵇ₁ ... xᵇₜ | uᵇ₁ ... uᵇₜ]
@@ -262,7 +310,7 @@ function setup(; T=10,
     gnep = [OP1 OP2]
     bilevel = [OP1; OP2]
 
-    
+
     function extract_gnep(θ)
         Z = θ[gnep.x_inds]
         @inbounds Xa = @view(Z[1:4*T])

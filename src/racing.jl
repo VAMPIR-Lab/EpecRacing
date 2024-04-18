@@ -31,7 +31,7 @@ end
 # each player wants to make forward progress and stay in center of lane
 # e = ego
 # o = opponent
-function f_ego(T, X, U, X_opp, c, r; α1, α2, α3, β)
+function f_ego(T, X, U, X_opp, c, r; α1, α2, β)
     xdim = 4
     udim = 2
     cost = 0.0
@@ -52,17 +52,17 @@ function f_ego(T, X, U, X_opp, c, r; α1, α2, α3, β)
 end
 
 # P1 wants to make forward progress and stay in center of lane.
-function f1(z; α1=1.0, α2=0.0, α3=0.0, β=1.0)
+function f1(z; α1, α2, β)
     T, Xa, Ua, Xb, Ub, x0a, x0b, ca, cb, ra, rb = view_z(z)
 
-    f_ego(T, Xa, Ua, Xb, ca, ra; α1, α2, α3, β)
+    f_ego(T, Xa, Ua, Xb, ca, ra; α1, α2, β)
 end
 
 # P2 wants to make forward progress and stay in center of lane.
-function f2(z; α1=1.0, α2=0.0, α3=0.0, β=1.0)
+function f2(z; α1, α2, β)
     T, Xa, Ua, Xb, Ub, x0a, x0b, ca, cb, ra, rb = view_z(z)
 
-    f_ego(T, Xb, Ub, Xa, cb, rb; α1, α2, α3, β)
+    f_ego(T, Xb, Ub, Xa, cb, rb; α1, α2, β)
 end
 
 function pointmass(x, u, Δt, cd)
@@ -305,25 +305,25 @@ function g2(z; Δt, r, cd, d, u_max_nominal, u_max_drafting, box_length, box_wid
     g_ego(Xb, Ub, Xa, x0b, x0a, cb, rb, ca; Δt, r, cd, d, u_max_nominal, u_max_drafting, box_length, box_width, col_buffer)
 end
 
-function setup(; T=10,
+function setup(;
+    T=10,
     Δt=0.1,
     r=1.0,
-    α1=1e-3,
-    α2=1e-4,
-    α3=1e-1,
-    β=1e-1, #.5, # sensitive to high values
-    cd=0.2, #0.25,
+    cost_α1=1e-3,
+    cost_α2=1e-4,
+    cost_β=1e-1,
+    drag_coef=0.2,
     u_max_nominal=1.0,
-    u_max_drafting=2.5, #2.5, # sensitive to high difference over nominal 
-    box_length=5.0,
-    box_width=2.0,
-    lat_max=2.0, # deprecated
+    u_max_drafting=2.5,
+    draft_box_length=5.0,
+    draft_box_width=2.0,
     d=1.0,
     u_max_braking=u_max_drafting,
     min_speed=-1.0,
     max_heading_offset=π / 2,
     max_heading_rate=1.0,
-    col_buffer=r / 4)
+    col_buffer=r / 4
+)
     xdim = 4
 
     lb = [fill(0.0, xdim * T)
@@ -348,11 +348,30 @@ function setup(; T=10,
         fill(0.0, xdim * T)
     ]
 
-
-    f1_pinned = (z -> f1(z; α1, α2, α3, β))
-    f2_pinned = (z -> f2(z; α1, α2, α3, β))
-    g1_pinned = (z -> g1(z; Δt, r, cd, d, u_max_nominal, u_max_drafting, box_length, box_width, col_buffer))
-    g2_pinned = (z -> g2(z; Δt, r, cd, d, u_max_nominal, u_max_drafting, box_length, box_width, col_buffer))
+    f1_pinned = (z -> f1(z; α1=cost_α1, α2=cost_α2, β=cost_β))
+    f2_pinned = (z -> f2(z; α1=cost_α1, α2=cost_α2, β=cost_β))
+    g1_pinned = (z -> g1(z;
+        Δt,
+        r=r,
+        cd=drag_coef,
+        d=d,
+        u_max_nominal,
+        u_max_drafting,
+        box_length=draft_box_length,
+        box_width=draft_box_width,
+        col_buffer)
+    )
+    g2_pinned = (z -> g2(z;
+        Δt,
+        r=r,
+        cd=drag_coef,
+        d=d,
+        u_max_nominal,
+        u_max_drafting,
+        box_length=draft_box_length,
+        box_width=draft_box_width,
+        col_buffer)
+    )
 
     n_param = 14 # 8 x0, 4 c, 2 r2
     OP1 = OptimizationProblem(12 * T + n_param, 1:6*T, f1_pinned, g1_pinned, lb, ub)
@@ -361,7 +380,6 @@ function setup(; T=10,
     sp_a = create_epec((1, 0), OP1)
     gnep = [OP1 OP2]
     bilevel = [OP1; OP2]
-
 
     function extract_gnep(θ)
         z = θ[gnep.x_inds]
@@ -374,7 +392,33 @@ function setup(; T=10,
         (; Xa, Ua, Xb, Ub)
     end
 
-    problems = (; sp_a, gnep, bilevel, extract_gnep, extract_bilevel, OP1, OP2, params=(; T, Δt, r, cd, d, lat_max, u_max_nominal, u_max_drafting, u_max_braking, α1, α2, α3, β, box_length, box_width, min_speed, max_heading_offset, col_buffer))
+    problems = (;
+        sp_a,
+        gnep,
+        bilevel,
+        extract_gnep,
+        extract_bilevel,
+        OP1,
+        OP2,
+        params=(;
+            T,
+            Δt,
+            r=r,
+            cd=drag_coef,
+            d=d,
+            u_max_nominal,
+            u_max_drafting,
+            u_max_braking,
+            α1=cost_α1,
+            α2=cost_α2,
+            β=cost_β,
+            box_length=draft_box_length,
+            box_width=draft_box_width,
+            min_speed,
+            max_heading_offset,
+            col_buffer
+        )
+    )
 end
 
 function attempt_solve(prob, init)
@@ -655,7 +699,6 @@ end
 #   P2-Follower 7   8   9		    10
 #
 function solve_simulation(probs, T; x0=[0, 0, 0, 7, 0.1, -2.21, 0, 7], road=Dict(0 => 0, 1 => 0, 2 => 0.1), mode=1)
-    lat_max = probs.params.lat_max
     status = "ok"
     x0a = x0[1:4]
     x0b = x0[5:8]
@@ -843,125 +886,50 @@ function solve_simulation(probs, T; x0=[0, 0, 0, 7, 0.1, -2.21, 0, 7], road=Dict
     results
 end
 
-
-#const xdim = 4
-#const udim = 2
-# generate x0s
-# also generates roads
-function generate_x0s(sample_size, lat_max, r_offset_min, r_offset_max, a_long_vel_max, b_long_vel_delta_max)
-    # choose random P1 lateral position inside the lane limits, long pos = 0
-    #c, r = get_road(0; road);
-    # solve quadratic equation to find x intercepts of the road
-    #lax_max = sqrt((r - road_d)^2 - c[2]^2) + c[1]
-    #lax_max = sqrt((r + road_d)^2 - c[2]^2) + c[1]
-    #lat_max = min()
-    roads = Vector{Dict{Float64,Float64}}(undef, sample_size)
-
-    a_lat_pos0_arr = -lat_max .+ 2 * lat_max .* rand(MersenneTwister(), sample_size)  # .5 .* ones(sample_size)
-    # fix P1 longitudinal pos at 0
-    a_pos0_arr = hcat(a_lat_pos0_arr, zeros(sample_size, 1))
-    b_pos0_arr = zeros(size(a_pos0_arr))
-    # choose random radial offset for P2
-    for i in 1:sample_size
-        # shift initial position wrt to road
-        roads[i] = gen_road()
-        road_ys = roads[i] |> keys |> collect
-        sortedkeys = sortperm((road_ys .- 0) .^ 2)
-        road_offset = roads[i][road_ys[sortedkeys[1]]]
-
-        a_pos0_arr[i, 1] += road_offset
-
-        r_offset = r_offset_min .+ (r_offset_max - r_offset_min) .* sqrt.(rand(MersenneTwister()))
-        ϕ_offset = rand(MersenneTwister()) * 2 * π
-        b_lat_pos0 = a_pos0_arr[i, 1] + r_offset * cos(ϕ_offset)
-        # reroll until we b lat pos is inside the lane limits
-        while b_lat_pos0 > lat_max + road_offset || b_lat_pos0 < -lat_max + road_offset
-            r_offset = r_offset_min .+ (r_offset_max - r_offset_min) .* sqrt.(rand(MersenneTwister()))
-            ϕ_offset = rand(MersenneTwister()) * 2 * π
-            b_lat_pos0 = a_pos0_arr[i, 1] + r_offset * cos(ϕ_offset)
-        end
-        b_long_pos0 = a_pos0_arr[i, 2] + r_offset * sin(ϕ_offset)
-        b_pos0_arr[i, :] = [b_lat_pos0, b_long_pos0]
-    end
-
-    @assert minimum(sqrt.(sum((a_pos0_arr .- b_pos0_arr) .^ 2, dims=2))) >= 1.0 # probs.params.r
-    #@assert all(-lat_max .< b_pos0_arr[:, 1] .< lat_max)
-
-
-    # keep lateral velocity zero
-
-    a_long_vel_min = b_long_vel_delta_max
-    a_vel0_arr = hcat(zeros(sample_size), a_long_vel_min .+ (a_long_vel_max - a_long_vel_min) .* rand(MersenneTwister(), sample_size))
-    #a_vel0_arr = hcat(zeros(sample_size), a_long_vel_max .* rand(MersenneTwister(), sample_size))
-
-    b_vel0_arr = zeros(size(a_vel0_arr))
-    # choose random velocity offset for 
-    for i in 1:sample_size
-        b_long_vel0_offset = -b_long_vel_delta_max + 2 * b_long_vel_delta_max .* rand(MersenneTwister())
-        b_long_vel0 = a_vel0_arr[i, 2] + b_long_vel0_offset
-        ## reroll until b long vel is nonnegative
-        #while b_long_vel0 < 0
-        #    b_long_vel0_offset = -b_long_vel_delta_max + 2 * b_long_vel_delta_max .* rand(MersenneTwister())
-        #    b_long_vel0 = a_vel0_arr[i, 2] + b_long_vel0_offset
-        #end
-        b_vel0_arr[i, 2] = b_long_vel0
-    end
-
-    #@infiltrate
-    #x0_arr = hcat(a_pos0_arr, a_vel0_arr, b_pos0_arr, b_vel0_arr)
-    # really simple since lateral vel is zero
-    x0_arr = hcat(a_pos0_arr, a_vel0_arr[:, 2], ones(length(a_vel0_arr[:, 1])) .* π / 2, b_pos0_arr, b_vel0_arr[:, 2], ones(length(b_vel0_arr[:, 1])) .* π / 2)
-    #@infiltrate
-    x0s = Dict()
-
-    for (index, row) in enumerate(eachrow(x0_arr))
-        x0s[index] = row
-    end
-    (x0s, roads)
-end
-
-function gen_road(; road_base=Dict(
-    0 => 0,
-    2 => 0.01,
-    4 => 0,
-    6 => 0.01,
-    6.5 => 0.09, # begin right turn
-    7 => 0.25,
-    7.5 => 0.5,
-    8 => 0.8,
-    9 => 1.6,
-    10 => 2.3,
-    10.5 => 2.45,
-    11.0 => 2.5, # right peak
-    11.5 => 2.45,
-    12 => 2.3,
-    13 => 1.6,
-    14 => 0.8,
-    14.5 => 0.5,
-    15 => 0.25,
-    15.5 => 0.09, # end right turn
-    16 => 0.0,
-    18 => 0.01,
-    18.5 => -0.09, # begin left turn
-    19 => -0.25,
-    19.5 => -0.5,
-    20 => -0.8,
-    21 => -1.6,
-    22 => -2.3,
-    22.5 => -2.45,
-    23 => -2.5, # left peak
-    23.5 => -2.45,
-    24 => -2.3,
-    25 => -1.6,
-    26 => -0.8,
-    26.5 => -0.5,
-    27 => -0.25,
-    27.5 => -0.09 # end left turn
-))
+function gen_road(;
+    seed=nothing,
+    road_base=Dict(
+        0 => 0,
+        2 => 0.01,
+        4 => 0,
+        6 => 0.01,
+        6.5 => 0.09, # begin right turn
+        7 => 0.25,
+        7.5 => 0.5,
+        8 => 0.8,
+        9 => 1.6,
+        10 => 2.3,
+        10.5 => 2.45,
+        11.0 => 2.5, # right peak
+        11.5 => 2.45,
+        12 => 2.3,
+        13 => 1.6,
+        14 => 0.8,
+        14.5 => 0.5,
+        15 => 0.25,
+        15.5 => 0.09, # end right turn
+        16 => 0.0,
+        18 => 0.01,
+        18.5 => -0.09, # begin left turn
+        19 => -0.25,
+        19.5 => -0.5,
+        20 => -0.8,
+        21 => -1.6,
+        22 => -2.3,
+        22.5 => -2.45,
+        23 => -2.5, # left peak
+        23.5 => -2.45,
+        24 => -2.3,
+        25 => -1.6,
+        26 => -0.8,
+        26.5 => -0.5,
+        27 => -0.25,
+        27.5 => -0.09 # end left turn
+    ))
     # randomize road
     road_sorted = road_base |> sort
     road_len = (road_sorted |> keys |> collect |> last) - (road_sorted |> keys |> collect |> first)
-    road_y_offset = (0.5 - rand()) * road_len
+    road_y_offset = (0.5 - rand(MersenneTwister(seed))) * road_len
     #road_y_offset = 0
     road_offset = Dict{Float64,Float64}()
 

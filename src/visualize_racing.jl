@@ -1,4 +1,4 @@
-function animate(probs, sim_results; save=false, filename="test.mp4", sleep_duration=1e-1, mode=1, road=nothing)
+function animate(params, sim_results; save=false, filename="test.mp4", sleep_duration=1e-1, mode=1, road=nothing, lat=5.0)
     mode_str = [
         1 => "Blue: S, Red: S"
         2 => "Blue: S, Red: N"
@@ -11,12 +11,13 @@ function animate(probs, sim_results; save=false, filename="test.mp4", sleep_dura
         9 => "Blue: L, Red: F"
         10 => "Blue: F, Red: F"
     ]
-    rad = probs.params.r / 2
-    lat = probs.params.lat_max + rad
+    rad = params.r / 2
+    #lat = params.display_lat_max + rad
+
     if isnothing(road)
         (f, ax, XA, XB, lat) = visualize(; rad=rad, lat=lat)
     else
-        (f, ax, XA, XB, lat) = visualize(road; rad=rad, lat=lat, d=probs.params.d)
+        (f, ax, XA, XB, lat) = visualize(road; rad=rad, lat=lat, d=params.d)
     end
     display(f)
     T = length(sim_results)
@@ -25,13 +26,13 @@ function animate(probs, sim_results; save=false, filename="test.mp4", sleep_dura
         # extra 5 frames at the end because powerpoint is being weird
         record(f, filename, 1:T+10; framerate=10) do t
             if t <= T
-                update_visual!(ax, XA, XB, sim_results[t].x0, sim_results[t].P1, sim_results[t].P2; T=probs.params.T, lat=lat)
+                update_visual!(ax, XA, XB, sim_results[t].x0, sim_results[t].P1, sim_results[t].P2; T=params.T, lat=lat)
                 ax.title = "$(mode_str[mode][2])\nTime step = $(string(t))"
             end
         end
     else
         for t in 1:T
-            update_visual!(ax, XA, XB, sim_results[t].x0, sim_results[t].P1, sim_results[t].P2; T=probs.params.T, lat=lat)
+            update_visual!(ax, XA, XB, sim_results[t].x0, sim_results[t].P1, sim_results[t].P2; T=params.T, lat=lat)
             ax.title = "$(mode_str[mode][2])\nTime step = $(string(t))"
             sleep(sleep_duration)
         end
@@ -79,9 +80,9 @@ function visualize(road; T=10, rad=0.5, lat=6.0, d=1.0)
     carsymbol = BezierPath(carsymbol_string, fit=true, flipy=true)
 
     # real road
-    road_sorted = road |> sort;
-    road_center_y = road_sorted |> keys |> collect;
-    road_center_x = road_sorted |> values |> collect;
+    road_sorted = road |> sort
+    road_center_y = road_sorted |> keys |> collect
+    road_center_x = road_sorted |> values |> collect
     GLMakie.scatter!(ax, road_center_x, road_center_y, color=:black)
     GLMakie.lines!(ax, road_center_x .- d .- rad, road_center_y, color=:black, linewidth=2)
     GLMakie.lines!(ax, road_center_x .+ d .+ rad, road_center_y, color=:black, linewidth=2)
