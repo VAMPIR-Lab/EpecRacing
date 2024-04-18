@@ -1,8 +1,10 @@
 using EpecRacing
 
 modes = [3, 9]
+sample_size = 20;
 time_steps = 25;
-results, x0s, roads, params = read_from_file(modes, "exp_n2_2024-04-18_0025", "2024-04-18_0028_$(time_steps)steps")
+date_now = EpecRacing.Dates.format(EpecRacing.Dates.now(), "YYYY-mm-dd_HHMM")
+results, x0s, roads, params = read_from_file(modes, "exp_n$(sample_size)_2024-04-18_0233", "2024-04-18_0234_$(time_steps)steps")
 
 processed_results = Dict()
 for (index, res) in results
@@ -17,32 +19,37 @@ println("		mean (±95% CI) [95% CI l, u]	std	min	max")
 # needs all modes 1 to 10
 #print("print_compressed_tables.jl") 
 
+println("Steps:")
+for (k, v) in steps_table
+    print_mean_etc(v; title=k, scale=1)
+end
+
 println("Total:")
 for (k, v) in total_cost_table
-    print_mean_etc(v; title=k, scale=10)
+    print_mean_etc(v; title=k, scale=100)
 end
 
-println("Lane:")
-for (k, v) in lane_cost_table
-    print_mean_etc(v; title=k, scale=10)
-end
+#println("Lane:")
+#for (k, v) in lane_cost_table
+#    print_mean_etc(v; title=k, scale=100)
+#end
 
-println("Control:")
-for (k, v) in control_cost_table
-    print_mean_etc(v; title=k, scale=10)
-end
+#println("Control:")
+#for (k, v) in control_cost_table
+#    print_mean_etc(v; title=k, scale=100)
+#end
 
 println("Velocity:")
 for (k, v) in velocity_cost_table
-    print_mean_etc(v; title=k, scale=10)
+    print_mean_etc(v; title=k, scale=100)
 end
 
 # rss 2024 plots
-#include("gen_boxplot.jl")
+include("gen_boxplot.jl")
 include("gen_running_cost_plot.jl")
 
 # to visualize:
-mode = 3;
-sample = 2;
-road = roads[sample];
+#mode = 3;
+#sample = rand(1:sample_size);
+#road = roads[sample];
 #EpecRacing.animate(params, results[mode][sample]; save=false, mode, road);

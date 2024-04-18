@@ -46,7 +46,7 @@ function f_ego(T, X, U, X_opp, c, r; α1, α2, β)
         #cost += α1 * x[1]^2 + α2 * u' * u + β * (long_vel_opp - 2 * long_vel)
         #road_center = (p - c) ./ ((p - c)' * (p - c)) * r[1]
         #cost += α1 * (p[1] - road_center[1])^2 + α2 * u' * u + β * (long_vel_opp - 2 * long_vel)
-        cost += α1^2 * ((p - c)' * (p - c) - r[1]^2)^2 + α2 * u' * u + β * (long_vel_opp - 2 * long_vel)
+        cost += α1^2 * ((p - c)' * (p - c) - r[1]^2)^2 + α2 * u' * u + β * (long_vel_opp - long_vel)
     end
     cost
 end

@@ -279,7 +279,7 @@ function f_ego_breakdown(T, X, U, X_opp, c, r; α1, α2, β)
 
         lane_cost_arr[t] = α1^2 * ((p - c)' * (p - c) - r[1]^2)^2
         control_cost_arr[t] = α2 * u' * u
-        velocity_cost_arr[t] = β * (long_vel_opp - 2 * long_vel)
+        velocity_cost_arr[t] = β * (long_vel_opp - long_vel)
     end
 
     lane_cost = sum(lane_cost_arr)
@@ -416,7 +416,7 @@ function gen_steps_table(processed_results, modes_sorted)
     full_steps_table
 end
 
-function gen_costs_table(processed_results, modes_sorted; property=:total)
+function gen_cost_per_step_table(processed_results, modes_sorted; property=:total)
     cost_table_old = Dict()
 
     for mode in modes_sorted
@@ -498,10 +498,10 @@ end
 function gen_all_tables(processed_results)
     modes_sorted = sort(collect(keys(processed_results)))
     steps_table = gen_steps_table(processed_results, modes_sorted)
-    total_cost_table = gen_costs_table(processed_results, modes_sorted, property=:total)
-    lane_cost_table = gen_costs_table(processed_results, modes_sorted, property=:lane)
-    control_cost_table = gen_costs_table(processed_results, modes_sorted, property=:control)
-    velocity_cost_table = gen_costs_table(processed_results, modes_sorted, property=:velocity)
+    total_cost_table = gen_cost_per_step_table(processed_results, modes_sorted, property=:total)
+    lane_cost_table = gen_cost_per_step_table(processed_results, modes_sorted, property=:lane)
+    control_cost_table = gen_cost_per_step_table(processed_results, modes_sorted, property=:control)
+    velocity_cost_table = gen_cost_per_step_table(processed_results, modes_sorted, property=:velocity)
 
     (; modes_sorted, steps_table, total_cost_table, lane_cost_table, control_cost_table, velocity_cost_table)
 end
