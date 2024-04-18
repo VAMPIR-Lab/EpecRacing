@@ -1,10 +1,12 @@
 using EpecRacing
 
 modes = [3, 9]
-sample_size = 50;
+sample_size = 25;
 time_steps = 25;
+exp_date = "2024-04-18_1628";
+run_date = "2024-04-18_1629";
 date_now = EpecRacing.Dates.format(EpecRacing.Dates.now(), "YYYY-mm-dd_HHMM")
-results, x0s, roads, params = read_from_file(modes, "exp_n$(sample_size)_2024-04-18_0823", "2024-04-18_0824_$(time_steps)steps")
+results, x0s, roads, params = read_from_file(modes, "exp_n$(sample_size)_$(exp_date)", "$(run_date)_$(time_steps)steps")
 
 processed_results = Dict()
 for (index, res) in results

@@ -305,15 +305,21 @@ function solve_top_level(mcp, bounds, θ, x_inds, inds, f_dict; silent=true)
         l,
         u,
         x;
-        silent,
+        silent=true,
         nnz=nnz_total,
         jacobian_structure_constant=true,
         jacobian_data_contiguous=true,
-        cumulative_iteration_limit=50_000,
-        major_iteration_limit=1000,
+        cumulative_iteration_limit=20_000,
+        major_iteration_limit=500,
         time_limit=5,
-        convergence_tolerance=1e-7,
-        lemke_rank_deficiency_iterations=100 # fixes silent crashes " ** SOLVER ERROR ** Lemke: invertible basis could not be computed."
+        convergence_tolerance=1e-6,
+        lemke_rank_deficiency_iterations=20, # fixes silent crashes " ** SOLVER ERROR ** Lemke: invertible basis could not be computed."
+        preprocess=1,
+        presolve=1,
+        output=0,
+        output_options=0,
+        output_errors=0,
+        output_final_summary=1
     )
 
     if status != PATHSolver.MCP_Solved
@@ -373,11 +379,18 @@ function solve_low_level!(mcp, θ; silent=true)
         nnz=nnz_total,
         jacobian_structure_constant=true,
         jacobian_data_contiguous=true,
-        cumulative_iteration_limit=50_000,
-        major_iteration_limit=1000,
+        cumulative_iteration_limit=20_000,
+        major_iteration_limit=500,
         time_limit=5,
-        convergence_tolerance=1e-7,
-        lemke_rank_deficiency_iterations=100
+        convergence_tolerance=1e-6,
+        lemke_rank_deficiency_iterations=20, # fixes silent crashes " ** SOLVER ERROR ** Lemke: invertible basis could not be computed."
+        preprocess=1,
+        presolve=1,
+        output=0,
+        output_options=0,
+        output_errors=0,
+        output_warnings=0,
+        output_final_summary=1
     )
 
     #if status != PATHSolver.MCP_Solved && silent

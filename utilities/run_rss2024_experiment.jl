@@ -1,19 +1,11 @@
 using EpecRacing
 
-sample_size = 50;
+sample_size = 2000;
 time_steps = 25;
-```
-Experiments:
-						P1:						
-				SP NE P1-leader P1-follower
-			SP  1              
-P2:			NE  2  3
-	 P2-Leader  4  5  6 
-   P2-Follower  7  8  9			10
-```
-experiment_modes = [3, 9] # 1:10
+experiment_modes = 6:10 # 1:10
+
 probs, x0s, roads, params, experiment_fname = create_experiment(sample_size;
-    experiment_fname=nothing,
+    experiment_fname="exp_n2000_2024-04-18_1649",
     T=10,
     Δt=0.1,
     r=1.0,
@@ -23,7 +15,7 @@ probs, x0s, roads, params, experiment_fname = create_experiment(sample_size;
     drag_coef=0.1,
     d=2.0,
     u_max_nominal=1.0,
-    u_max_drafting=2.0,
+    u_max_drafting=3.0,
     max_heading_offset=π / 2,
     max_heading_rate=1.0,
     min_speed=-1.0,
