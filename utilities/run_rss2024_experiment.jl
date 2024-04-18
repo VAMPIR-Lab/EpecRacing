@@ -1,6 +1,6 @@
 using EpecRacing
 
-sample_size = 100;
+sample_size = 50;
 time_steps = 25;
 ```
 Experiments:
@@ -19,11 +19,11 @@ probs, x0s, roads, params, experiment_fname = create_experiment(sample_size;
     r=1.0,
     cost_α1=1e-3,
     cost_α2=1e-4,
-    cost_β=1.,
+    cost_β=1e-1,
     drag_coef=0.1,
     d=2.0,
     u_max_nominal=1.0,
-    u_max_drafting=3.0,
+    u_max_drafting=2.0,
     max_heading_offset=π / 2,
     max_heading_rate=1.0,
     min_speed=-1.0,
