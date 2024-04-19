@@ -3,7 +3,9 @@ module EpecRacing
 include("EPEC.jl")
 using .EPEC
 using LinearAlgebra
+import CairoMakie
 using GLMakie
+GLMakie.activate!()
 using Random
 using Dates
 using JLD2

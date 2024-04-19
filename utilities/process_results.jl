@@ -1,12 +1,11 @@
 using EpecRacing
 
-modes = [3, 9]
-sample_size = 25;
+modes = 1:3
+sample_size = 200;
 time_steps = 25;
-exp_date = "2024-04-18_1628";
-run_date = "2024-04-18_1629";
-date_now = EpecRacing.Dates.format(EpecRacing.Dates.now(), "YYYY-mm-dd_HHMM")
-results, x0s, roads, params = read_from_file(modes, "exp_n$(sample_size)_$(exp_date)", "$(run_date)_$(time_steps)steps")
+experiment_fname = "exp2024-04-18_2215_n200";
+run_date = "2024-04-18_2200";
+results, x0s, roads, params = read_from_file(modes, experiment_fname, run_date, time_steps; data_dir="data")
 
 processed_results = Dict()
 for (index, res) in results
@@ -47,12 +46,11 @@ for (k, v) in velocity_cost_table
 end
 
 # rss 2024 plots
-include("gen_boxplot.jl")
-include("gen_running_cost_plot.jl")
+#include("gen_boxplot.jl")
+#include("gen_running_cost_plot.jl")
 
 # to visualize:
-mode = 3;
-sample = rand(1:sample_size);
-road = roads[sample];
-EpecRacing.animate(params, results[mode][sample]; save=false, mode, road);
-
+mode = 9
+#sample=77
+#t=19
+EpecRacing.randomly_animate(mode, results, roads, params, sample_size; sample=1)

@@ -4,6 +4,7 @@ authors = ["cinaral <andcinar@gmail.com>", "Forrest <forrest.laine@vanderbilt.ed
 version = "0.1.0"
 
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 Infiltrator = "5903a43b-9cc3-4c30-8d17-598619ec4e9b"

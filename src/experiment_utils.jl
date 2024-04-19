@@ -58,7 +58,7 @@ function create_experiment(sample_size;
                 x0b_long_vel_delta_max
             )
             date_now = Dates.format(now(), "YYYY-mm-dd_HHMM")
-            experiment_fname = "exp_n$(sample_size)_$(date_now)"
+            experiment_fname = "exp$(date_now)_n$(sample_size)"
             jldsave("$(data_dir)/$(experiment_fname).jld2";
                 x0s,
                 roads,
@@ -121,7 +121,7 @@ function solve_experiment(probs, x0s, roads, time_steps, mode; saving_to_file=tr
         end
         #global progress
         progress += 1
-        @info "Mode $(mode) Progress $(progress/x0s_len*100)%"
+        @info "$(Dates.format(Dates.now(), "YYYY-mm-dd HH:MM")) Mode $(mode) Progress $(progress/x0s_len*100)%"
     end
     elapsed = time() - start
 
@@ -131,9 +131,9 @@ function solve_experiment(probs, x0s, roads, time_steps, mode; saving_to_file=tr
         end
 
         if isnothing(experiment_fname)
-            result_fname = "res_mode$(mode)_$(date_now)_$(time_steps)steps"
+            result_fname = "run$(date_now)_mode$(mode)_steps$(time_steps)"
         else
-            result_fname = "res_mode$(mode)_($(experiment_fname))_$(date_now)_$(time_steps)steps"
+            result_fname = "$(experiment_fname)_run$(date_now)_mode$(mode)_steps$(time_steps)"
         end
         jldsave("$(data_dir)/$(result_fname).jld2"; params=probs.params, results, elapsed)
     end
@@ -218,9 +218,7 @@ function generate_inits(sample_size, lat_max, r_offset_min, r_offset_max, a_long
     (x0s, roads)
 end
 
-function read_from_file(modes, experiment_fname, suffix; data_dir="data")
-    results_suffix = "_($experiment_fname)_$(suffix)"
-
+function read_from_file(modes, experiment_fname, run_date, time_steps; data_dir="data")
     experiment_file = EpecRacing.jldopen("$(data_dir)/$(experiment_fname).jld2", "r")
     x0s = experiment_file["x0s"]
     roads = experiment_file["roads"]
@@ -229,7 +227,7 @@ function read_from_file(modes, experiment_fname, suffix; data_dir="data")
     results = Dict()
 
     for i in modes
-        file = EpecRacing.jldopen("$(data_dir)/res_mode$(i)$(results_suffix).jld2", "r")
+        file = EpecRacing.jldopen("$(data_dir)/$(experiment_fname)_run$(run_date)_mode$(i)_steps$(time_steps).jld2", "r")
         results[i] = file["results"]
     end
 
