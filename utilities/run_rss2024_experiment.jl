@@ -2,9 +2,9 @@ using EpecRacing
 
 sample_size = 100;
 time_steps = 25;
-experiment_modes = 4:10
+experiment_modes = 1:10
 probs, x0s, roads, params, experiment_fname = create_experiment(sample_size;
-    experiment_fname="exp2024-04-19_0055_n100",
+    experiment_fname=nothing,
     T=10,
     Δt=0.1,
     r=1.0,

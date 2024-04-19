@@ -340,98 +340,24 @@ function compute_realized_cost(res, params)
     (; a=a_breakdown, b=b_breakdown)
 end
 
-function gen_steps_table(processed_results, modes_sorted)
-    steps_table_old = Dict()
-
-    for mode in modes_sorted
-        res = processed_results[mode]
-        inds = res.costs |> keys |> collect |> sort
-        a_steps = [res.steps[i] for i in inds]
-        b_steps = [res.steps[i] for i in inds]
-        steps_table_old[mode, "a"] = a_steps
-        steps_table_old[mode, "b"] = b_steps
-    end
-
-    full_steps_table = Dict()
-    ```
-    Experiments:
-                            P1:						
-                    SP NE P1-leader P1-follower
-                SP  1              
-    P2:			NE  2  3
-         P2-Leader  4  5  6 
-       P2-Follower  7  8  9			10
-    ```
-    if haskey(steps_table_old, (1, "a"))
-        full_steps_table["S", "S"] = steps_table_old[1, "a"]
-    end
-    if haskey(steps_table_old, (2, "a"))
-        full_steps_table["S", "N"] = steps_table_old[2, "a"]
-    end
-    if haskey(steps_table_old, (4, "a"))
-        full_steps_table["S", "L"] = steps_table_old[4, "a"]
-    end
-    if haskey(steps_table_old, (7, "a"))
-        full_steps_table["S", "F"] = steps_table_old[7, "a"]
-    end
-    if haskey(steps_table_old, (2, "b"))
-        full_steps_table["N", "S"] = steps_table_old[2, "b"]
-    end
-    if haskey(steps_table_old, (3, "a"))
-        full_steps_table["N", "N"] = steps_table_old[3, "a"]
-    end
-    if haskey(steps_table_old, (5, "a"))
-        full_steps_table["N", "L"] = steps_table_old[5, "a"]
-    end
-    if haskey(steps_table_old, (8, "a"))
-        full_steps_table["N", "F"] = steps_table_old[8, "a"]
-    end
-    if haskey(steps_table_old, (4, "b"))
-        full_steps_table["L", "S"] = steps_table_old[4, "b"]
-    end
-    if haskey(steps_table_old, (5, "b"))
-        full_steps_table["L", "N"] = steps_table_old[5, "b"]
-    end
-    if haskey(steps_table_old, (6, "a"))
-        full_steps_table["L", "L"] = steps_table_old[6, "a"]
-    end
-    if haskey(steps_table_old, (9, "a"))
-        full_steps_table["L", "F"] = steps_table_old[9, "a"]
-    end
-    if haskey(steps_table_old, (7, "b"))
-        full_steps_table["F", "S"] = steps_table_old[7, "b"]
-    end
-    if haskey(steps_table_old, (8, "b"))
-        full_steps_table["F", "N"] = steps_table_old[8, "b"]
-    end
-    if haskey(steps_table_old, (9, "b"))
-        full_steps_table["F", "L"] = steps_table_old[9, "b"]
-    end
-    if haskey(steps_table_old, (10, "a"))
-        full_steps_table["F", "F"] = steps_table_old[10, "a"]
-    end
-
-    full_steps_table
+function get_mean_CI(vals; scale=1.0)
+    vals = vals .* scale
+    CI = 1.96 * std(vals) / sqrt(length(vals))
+    m = mean(vals)
+    (m, CI)
 end
 
-function gen_cost_per_step_table(processed_results, modes_sorted; property=:total)
-    cost_table_old = Dict()
+function gen_steps_table(processed_results, modes_sorted)
+    steps_table = Dict()
 
     for mode in modes_sorted
         res = processed_results[mode]
         inds = res.costs |> keys |> collect |> sort
-        a_steps = [res.steps[i] for i in inds]
-        b_steps = [res.steps[i] for i in inds]
-        a_costs = [getindex(res.costs[i].a.final, property) for i in inds]
-        b_costs = [getindex(res.costs[i].b.final, property) for i in inds]
-        if a_steps == 0 || b_steps == 0
-            @infiltrate
-        end
-        cost_table_old[mode, "a"] = a_costs ./ a_steps
-        cost_table_old[mode, "b"] = b_costs ./ b_steps
+        steps = [res.steps[i] for i in inds]
+        steps_table[mode] = steps
     end
 
-    full_cost_table = Dict()
+    named_steps = Dict()
     ```
     Experiments:
                             P1:						
@@ -441,67 +367,255 @@ function gen_cost_per_step_table(processed_results, modes_sorted; property=:tota
          P2-Leader  4  5  6 
        P2-Follower  7  8  9			10
     ```
-    if haskey(cost_table_old, (1, "a"))
-        full_cost_table["S", "S"] = cost_table_old[1, "a"]
+    if haskey(steps_table, 1)
+        named_steps["S", "S"] = steps_table[1]
     end
-    if haskey(cost_table_old, (2, "a"))
-        full_cost_table["S", "N"] = cost_table_old[2, "a"]
+    if haskey(steps_table, 2)
+        named_steps["S", "N"] = steps_table[2]
     end
-    if haskey(cost_table_old, (4, "a"))
-        full_cost_table["S", "L"] = cost_table_old[4, "a"]
+    if haskey(steps_table, 4)
+        named_steps["S", "L"] = steps_table[4]
     end
-    if haskey(cost_table_old, (7, "a"))
-        full_cost_table["S", "F"] = cost_table_old[7, "a"]
+    if haskey(steps_table, 7)
+        named_steps["S", "F"] = steps_table[7]
     end
-    if haskey(cost_table_old, (2, "b"))
-        full_cost_table["N", "S"] = cost_table_old[2, "b"]
-    end  
-    if haskey(cost_table_old, (3, "a"))
-        full_cost_table["N", "N"] = cost_table_old[3, "a"]
+    if haskey(steps_table, 2)
+        named_steps["N", "S"] = steps_table[2]
     end
-    if haskey(cost_table_old, (5, "a"))
-        full_cost_table["N", "L"] = cost_table_old[5, "a"]
+    if haskey(steps_table, 3)
+        named_steps["N", "N"] = steps_table[3]
     end
-    if haskey(cost_table_old, (8, "a"))
-        full_cost_table["N", "F"] = cost_table_old[8, "a"]
+    if haskey(steps_table, 5)
+        named_steps["N", "L"] = steps_table[5]
     end
-    if haskey(cost_table_old, (4, "b"))
-        full_cost_table["L", "S"] = cost_table_old[4, "b"]
+    if haskey(steps_table, 8)
+        named_steps["N", "F"] = steps_table[8]
     end
-    if haskey(cost_table_old, (5, "b"))
-        full_cost_table["L", "N"] = cost_table_old[5, "b"]
+    if haskey(steps_table, 4)
+        named_steps["L", "S"] = steps_table[4]
     end
-    if haskey(cost_table_old, (6, "a"))
-        full_cost_table["L", "L"] = cost_table_old[6, "a"]
+    if haskey(steps_table, 5)
+        named_steps["L", "N"] = steps_table[5]
     end
-    if haskey(cost_table_old, (9, "a"))
-        full_cost_table["L", "F"] = cost_table_old[9, "a"]
+    if haskey(steps_table, 6)
+        named_steps["L", "L"] = steps_table[6]
     end
-    if haskey(cost_table_old, (7, "b"))
-        full_cost_table["F", "S"] = cost_table_old[7, "b"]
+    if haskey(steps_table, 9)
+        named_steps["L", "F"] = steps_table[9]
     end
-    if haskey(cost_table_old, (8, "b"))
-        full_cost_table["F", "N"] = cost_table_old[8, "b"]
+    if haskey(steps_table, 7)
+        named_steps["F", "S"] = steps_table[7]
     end
-    if haskey(cost_table_old, (9, "b"))
-        full_cost_table["F", "L"] = cost_table_old[9, "b"]
+    if haskey(steps_table, 8)
+        named_steps["F", "N"] = steps_table[8]
     end
-    if haskey(cost_table_old, (10, "a"))
-        full_cost_table["F", "F"] = cost_table_old[10, "a"]
+    if haskey(steps_table, 9)
+        named_steps["F", "L"] = steps_table[9]
+    end
+    if haskey(steps_table, 10)
+        named_steps["F", "F"] = steps_table[10]
     end
 
-    full_cost_table
+
+    function make_matrices(named_steps)
+        SS_mean, SS_CI = get_mean_CI(named_steps["S", "S"])
+        NS_mean, NS_CI = get_mean_CI(named_steps["N", "S"])
+        LS_mean, LS_CI = get_mean_CI(named_steps["L", "S"])
+        FS_mean, FS_CI = get_mean_CI(named_steps["F", "S"])
+        SN_mean, SN_CI = get_mean_CI(named_steps["S", "N"])
+        NN_mean, NN_CI = get_mean_CI(named_steps["N", "N"])
+        LN_mean, LN_CI = get_mean_CI(named_steps["L", "N"])
+        FN_mean, FN_CI = get_mean_CI(named_steps["F", "N"])
+        SL_mean, SL_CI = get_mean_CI(named_steps["S", "L"])
+        NL_mean, NL_CI = get_mean_CI(named_steps["N", "L"])
+        LL_mean, LL_CI = get_mean_CI(named_steps["L", "L"])
+        FL_mean, FL_CI = get_mean_CI(named_steps["F", "L"])
+        SF_mean, SF_CI = get_mean_CI(named_steps["S", "F"])
+        NF_mean, NF_CI = get_mean_CI(named_steps["N", "F"])
+        LF_mean, LF_CI = get_mean_CI(named_steps["L", "F"])
+        FF_mean, FF_CI = get_mean_CI(named_steps["F", "F"])
+
+        mean_matrix = [
+            SS_mean NS_mean LS_mean FS_mean
+            SN_mean NN_mean LN_mean FN_mean
+            SL_mean NL_mean LL_mean FL_mean
+            SF_mean NF_mean LF_mean FF_mean
+        ]
+
+        CI_matrix = [
+            SS_CI NS_CI LS_CI FS_CI
+            SN_CI NN_CI LN_CI FN_CI
+            SL_CI NL_CI LL_CI FL_CI
+            SF_CI NF_CI LF_CI FF_CI
+        ]
+
+        (mean_matrix, CI_matrix)
+    end
+
+    steps_mean, steps_CI = make_matrices(named_steps)
+
+    (steps_mean, steps_CI, named_steps)
+end
+
+
+
+function gen_cost_per_step_table(processed_results, modes_sorted; property=:total)
+    cost_table = Dict()
+
+    for mode in modes_sorted
+        res = processed_results[mode]
+        inds = res.costs |> keys |> collect |> sort
+        steps = [res.steps[i] for i in inds]
+        a_costs = [getindex(res.costs[i].a.final, property) for i in inds]
+        b_costs = [getindex(res.costs[i].b.final, property) for i in inds]
+        if any(steps .== 0)
+            @infiltrate
+        end
+        cost_table[mode, "a"] = a_costs ./ steps
+        cost_table[mode, "b"] = b_costs ./ steps
+    end
+
+    named_costs = Dict()
+    ```
+    Experiments:
+                            P1:						
+                    SP NE P1-leader P1-follower
+                SP  1              
+    P2:			NE  2  3
+         P2-Leader  4  5  6 
+       P2-Follower  7  8  9			10
+    ```
+    if haskey(cost_table, (1, "a"))
+        named_costs["S", "S", "a"] = cost_table[1, "a"]
+        named_costs["S", "S", "b"] = cost_table[1, "b"]
+    end
+    if haskey(cost_table, (2, "a"))
+        named_costs["S", "N", "a"] = cost_table[2, "a"]
+        named_costs["S", "N", "b"] = cost_table[2, "b"]
+    end
+    if haskey(cost_table, (4, "a"))
+        named_costs["S", "L", "a"] = cost_table[4, "a"]
+        named_costs["S", "L", "b"] = cost_table[4, "b"]
+    end
+    if haskey(cost_table, (7, "a"))
+        named_costs["S", "F", "a"] = cost_table[7, "a"]
+        named_costs["S", "F", "b"] = cost_table[7, "b"]
+    end
+    if haskey(cost_table, (2, "b"))
+        named_costs["N", "S", "a"] = cost_table[2, "b"]
+        named_costs["N", "S", "b"] = cost_table[2, "a"]
+    end
+    if haskey(cost_table, (3, "a"))
+        named_costs["N", "N", "a"] = cost_table[3, "a"]
+        named_costs["N", "N", "b"] = cost_table[3, "b"]
+    end
+    if haskey(cost_table, (5, "a"))
+        named_costs["N", "L", "a"] = cost_table[5, "a"]
+        named_costs["N", "L", "b"] = cost_table[5, "b"]
+    end
+    if haskey(cost_table, (8, "a"))
+        named_costs["N", "F", "a"] = cost_table[8, "a"]
+        named_costs["N", "F", "b"] = cost_table[8, "b"]
+    end
+    if haskey(cost_table, (4, "b"))
+        named_costs["L", "S", "a"] = cost_table[4, "b"]
+        named_costs["L", "S", "b"] = cost_table[4, "a"]
+    end
+    if haskey(cost_table, (5, "b"))
+        named_costs["L", "N", "a"] = cost_table[5, "b"]
+        named_costs["L", "N", "b"] = cost_table[5, "a"]
+    end
+    if haskey(cost_table, (6, "a"))
+        named_costs["L", "L", "a"] = cost_table[6, "a"]
+        named_costs["L", "L", "b"] = cost_table[6, "b"]
+    end
+    if haskey(cost_table, (9, "a"))
+        named_costs["L", "F", "a"] = cost_table[9, "a"]
+        named_costs["L", "F", "b"] = cost_table[9, "b"]
+    end
+    if haskey(cost_table, (7, "b"))
+        named_costs["F", "S", "a"] = cost_table[7, "b"]
+        named_costs["F", "S", "b"] = cost_table[7, "a"]
+    end
+    if haskey(cost_table, (8, "b"))
+        named_costs["F", "N", "a"] = cost_table[8, "b"]
+        named_costs["F", "N", "b"] = cost_table[8, "a"]
+    end
+    if haskey(cost_table, (9, "b"))
+        named_costs["F", "L", "a"] = cost_table[9, "b"]
+        named_costs["F", "L", "b"] = cost_table[9, "a"]
+    end
+    if haskey(cost_table, (10, "a"))
+        named_costs["F", "F", "a"] = cost_table[10, "a"]
+        named_costs["F", "F", "b"] = cost_table[10, "b"]
+    end
+
+    function make_matrices(named_costs; player="a")
+        SS_mean, SS_CI = get_mean_CI(named_costs["S", "S", player])
+        NS_mean, NS_CI = get_mean_CI(named_costs["N", "S", player])
+        LS_mean, LS_CI = get_mean_CI(named_costs["L", "S", player])
+        FS_mean, FS_CI = get_mean_CI(named_costs["F", "S", player])
+        SN_mean, SN_CI = get_mean_CI(named_costs["S", "N", player])
+        NN_mean, NN_CI = get_mean_CI(named_costs["N", "N", player])
+        LN_mean, LN_CI = get_mean_CI(named_costs["L", "N", player])
+        FN_mean, FN_CI = get_mean_CI(named_costs["F", "N", player])
+        SL_mean, SL_CI = get_mean_CI(named_costs["S", "L", player])
+        NL_mean, NL_CI = get_mean_CI(named_costs["N", "L", player])
+        LL_mean, LL_CI = get_mean_CI(named_costs["L", "L", player])
+        FL_mean, FL_CI = get_mean_CI(named_costs["F", "L", player])
+        SF_mean, SF_CI = get_mean_CI(named_costs["S", "F", player])
+        NF_mean, NF_CI = get_mean_CI(named_costs["N", "F", player])
+        LF_mean, LF_CI = get_mean_CI(named_costs["L", "F", player])
+        FF_mean, FF_CI = get_mean_CI(named_costs["F", "F", player])
+
+        mean_matrix = [
+            SS_mean NS_mean LS_mean FS_mean
+            SN_mean NN_mean LN_mean FN_mean
+            SL_mean NL_mean LL_mean FL_mean
+            SF_mean NF_mean LF_mean FF_mean
+        ]
+
+        CI_matrix = [
+            SS_CI NS_CI LS_CI FS_CI
+            SN_CI NN_CI LN_CI FN_CI
+            SL_CI NL_CI LL_CI FL_CI
+            SF_CI NF_CI LF_CI FF_CI
+        ]
+
+        (mean_matrix, CI_matrix)
+    end
+
+    a_costs_mean, a_costs_CI = make_matrices(named_costs; player="a")
+    b_costs_mean, b_costs_CI = make_matrices(named_costs; player="b")
+
+    (a_costs_mean, a_costs_CI, b_costs_mean, b_costs_CI, named_costs)
 end
 
 function gen_all_tables(processed_results)
     modes_sorted = sort(collect(keys(processed_results)))
-    steps_table = gen_steps_table(processed_results, modes_sorted)
-    total_cost_table = gen_cost_per_step_table(processed_results, modes_sorted, property=:total)
-    lane_cost_table = gen_cost_per_step_table(processed_results, modes_sorted, property=:lane)
-    control_cost_table = gen_cost_per_step_table(processed_results, modes_sorted, property=:control)
-    velocity_cost_table = gen_cost_per_step_table(processed_results, modes_sorted, property=:velocity)
 
-    (; modes_sorted, steps_table, total_cost_table, lane_cost_table, control_cost_table, velocity_cost_table)
+    (steps_mean, steps_CI, steps_named) = gen_steps_table(processed_results, modes_sorted)
+    (a_total_mean, a_total_CI, b_total_mean, b_total_CI, total_named) = gen_cost_per_step_table(processed_results, modes_sorted; property=:total)
+    (a_lane_mean, a_lane_CI, b_lane_mean, b_lane_CI, lane_named) = gen_cost_per_step_table(processed_results, modes_sorted; property=:lane)
+    (a_control_mean, a_control_CI, b_control_mean, b_control_CI, control_named) = gen_cost_per_step_table(processed_results, modes_sorted; property=:control)
+    (a_velocity_mean, a_velocity_CI, b_velocity_mean, b_velocity_CI, velocity_named) = gen_cost_per_step_table(processed_results, modes_sorted; property=:velocity)
+
+    a_costs_mean = (; total=a_total_mean, lane=a_lane_mean,control=a_control_mean, velocity=a_velocity_mean)    
+    a_costs_CI = (; total=a_total_CI, lane=a_lane_CI,control=a_control_CI, velocity=a_velocity_CI)    
+    b_costs_mean = (; total=b_total_mean, lane=b_lane_mean,control=b_control_mean, velocity=b_velocity_mean)    
+    b_costs_CI = (; total=b_total_CI, lane=b_lane_CI,control=b_control_CI, velocity=b_velocity_CI)    
+
+    (; steps_mean, steps_CI,a_costs_mean, a_costs_CI, b_costs_mean, b_costs_CI, steps_named, total_named, lane_named, control_named, velocity_named)
+end
+
+function get_scaled_interval(costs_mean, costs_CI; scale=1.0)
+    costs_mean .*= scale
+    costs_CI .*= scale
+
+    m95l = costs_mean .- costs_CI
+    m95u = costs_mean .+ costs_CI
+
+    m95l, m95u
 end
 
 function print_mean_etc(vals; title="", scale=1.0, sigdigits=3)
@@ -515,9 +629,27 @@ function print_mean_etc(vals; title="", scale=1.0, sigdigits=3)
     println("$(title)	$(round(m; sigdigits)) (±$(round(CI; sigdigits))) [$(round(m95l; sigdigits)), $(round(m95u; sigdigits))]	$(round(s; sigdigits))	$(round(minimum(vals); sigdigits))	$(round(maximum(vals); sigdigits))")
 end
 
-function get_mean_running_vel_cost(processed_results, i; time_steps)
+
+function get_mean_running_total_cost(processed_results, i; time_steps)
     vals = [Float64[] for _ in 1:time_steps]
     for (index, c) in processed_results[i].costs
+        T = length(c.a.running.total)
+        for t in 1:T
+            push!(vals[t], c.a.running.total[t])
+        end
+    end
+    avgs = map(vals) do val
+        mean(val)
+    end
+    stderrs = map(vals) do val
+        1.96 * std(val) / sqrt(length(val))
+    end
+    (avgs, stderrs)
+end
+
+function get_mean_running_vel_cost(processed_results, mode; time_steps)
+    vals = [Float64[] for _ in 1:time_steps]
+    for (index, c) in processed_results[mode].costs
         T = length(c.a.running.velocity)
         for t in 1:T
             push!(vals[t], c.a.running.velocity[t])
