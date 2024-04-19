@@ -857,7 +857,7 @@ function solve_simulation(probs, T; x0=[0, 0, 0, 7, 0.1, -2.21, 0, 7], road=Dict
             probs.params.box_length,
             probs.params.box_width,
             ca,
-            x0)
+            x0a)
 
         ub_maxes = accel_bounds(xb,
             xa,
@@ -866,7 +866,7 @@ function solve_simulation(probs, T; x0=[0, 0, 0, 7, 0.1, -2.21, 0, 7], road=Dict
             probs.params.box_length,
             probs.params.box_width,
             cb,
-            x0)
+            x0b)
 
         ua[1] = minimum([maximum([ua[1], -probs.params.u_max_braking]), ua_maxes[1][1], ua_maxes[2][1], ua_maxes[3][1], ua_maxes[4][1]])
         ub[1] = minimum([maximum([ub[1], -probs.params.u_max_braking]), ub_maxes[1][1], ub_maxes[2][1], ub_maxes[3][1], ub_maxes[4][1]])

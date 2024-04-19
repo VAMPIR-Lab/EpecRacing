@@ -1,11 +1,10 @@
 using EpecRacing
 
-sample_size = 5;
+sample_size = 100;
 time_steps = 25;
-experiment_modes = [3,9] # 1:10
-
+experiment_modes = 4:10
 probs, x0s, roads, params, experiment_fname = create_experiment(sample_size;
-    experiment_fname=nothing,
+    experiment_fname="exp2024-04-19_0055_n100",
     T=10,
     Δt=0.1,
     r=1.0,
@@ -25,7 +24,6 @@ probs, x0s, roads, params, experiment_fname = create_experiment(sample_size;
     x0a_long_vel_max=3.0,
     x0b_long_vel_delta_max=1.5
 )
-
 
 date_now = EpecRacing.Dates.format(EpecRacing.Dates.now(), "YYYY-mm-dd_HHMM")
 results = Dict()

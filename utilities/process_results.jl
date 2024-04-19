@@ -1,11 +1,11 @@
 using EpecRacing
 
-modes = 1:3
-sample_size = 200;
+modes = 1:10
 time_steps = 25;
-experiment_fname = "exp2024-04-18_2215_n200";
-run_date = "2024-04-18_2200";
+experiment_fname = "exp2024-04-18_1820_n100";
+run_date = "2024-04-18_1821";
 results, x0s, roads, params = read_from_file(modes, experiment_fname, run_date, time_steps; data_dir="data")
+sample_size = length(x0s)
 
 processed_results = Dict()
 for (index, res) in results
@@ -49,8 +49,12 @@ end
 #include("gen_boxplot.jl")
 #include("gen_running_cost_plot.jl")
 
-# to visualize:
-mode = 9
-#sample=77
-#t=19
-EpecRacing.randomly_animate(mode, results, roads, params, sample_size; sample=1)
+# draw all:
+# 41
+samples = rand(1:100, 4)
+#samples = [51]
+for s in samples
+    EpecRacing.randomly_animate(3, results, roads, params, sample_size; sample=s, t=1)
+    EpecRacing.randomly_animate(6, results, roads, params, sample_size; sample=s, t=1)
+    EpecRacing.randomly_animate(9, results, roads, params, sample_size; sample=s, t=1)
+end
