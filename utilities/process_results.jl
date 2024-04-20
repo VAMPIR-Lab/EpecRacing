@@ -53,13 +53,13 @@ include("print_compressed_tables.jl")
 #end
 
 # draw all:
- 41
-samples = rand(1:100, 4)
-#samples = [51]
-for s in samples
-    EpecRacing.randomly_animate(3, results, roads, params, sample_size; sample=s, t=1)
-    EpecRacing.randomly_animate(6, results, roads, params, sample_size; sample=s, t=1)
-    EpecRacing.randomly_animate(9, results, roads, params, sample_size; sample=s, t=1)
-end
+# 41
+#samples = rand(1:100, 4)
+##samples = [51]
+#for s in samples
+#    EpecRacing.randomly_animate(3, results, roads, params, sample_size; sample=s, t=1)
+#    EpecRacing.randomly_animate(6, results, roads, params, sample_size; sample=s, t=1)
+#    EpecRacing.randomly_animate(9, results, roads, params, sample_size; sample=s, t=1)
+#end
 
-EpecRacing.randomly_animate(3, results, roads, params, sample_size)
+#EpecRacing.randomly_animate(3, results, roads, params, sample_size)
