@@ -2,10 +2,10 @@ using EpecRacing
 
 modes = 1:10
 time_steps = 25;
-exp1_fname = "exp2024-04-19_0928_merged_n200"
-exp2_fname = "exp2024-04-19_0838_n100"
-results1, x0s1, roads1, params1 = read_from_file(modes, exp1_fname, "2024-04-19_0928", time_steps)
-results2, x0s2, roads2, params2 = read_from_file(modes, exp2_fname, "2024-04-19_0838", time_steps)
+exp1_fname = "exp2024-04-19_2312_merged_n700"
+exp2_fname = "exp2024-04-20_0153_merged_n300"
+results1, x0s1, roads1, params1 = read_from_file(modes, exp1_fname, "2024-04-19_2312", time_steps; data_dir="data/workspace")
+results2, x0s2, roads2, params2 = read_from_file(modes, exp2_fname, "2024-04-20_0153", time_steps; data_dir="data/workspace")
 
 data_new_dir = "data/merged"
 
@@ -21,14 +21,10 @@ for (key, val) in x0s2
 end
 
 # merge roads
-roads_merged = [copy(roads1); copy(roads1)]
-
-for i in eachindex(roads2)
-    roads_merged[i+shift] = roads2[i]
-end
+roads_merged = [copy(roads1); copy(roads2)]
 
 # save merged experiment file
-EpecRacing.jldsave("$(data_new_dir)/exp$(date_now)_merged_n300.jld2";
+EpecRacing.jldsave("$(data_new_dir)/exp$(date_now)_merged_n1000.jld2";
     x0s=x0s_merged,
     roads=roads_merged,
     params=params1
@@ -45,5 +41,5 @@ for i in modes
         res_merged[i][key+len] = value
     end
 
-    EpecRacing.jldsave("$(data_new_dir)/exp$(date_now)_merged_n300_run$(date_now)_mode$(i)_steps$(time_steps).jld2"; results=res_merged[i])
+    EpecRacing.jldsave("$(data_new_dir)/exp$(date_now)_merged_n1000_run$(date_now)_mode$(i)_steps$(time_steps).jld2"; results=res_merged[i])
 end

@@ -1,19 +1,29 @@
-compressed_steps_table = Dict()
+steps_table_compressed = Dict()
 for strat in ["S", "N", "L", "F"]
     #@infiltrate
-    compressed_steps_table[strat] = (steps_table[strat, "S"] + steps_table[strat, "N"] + teps_table[strat, "F"] + steps_table[strat, "L"]) / 4
+    steps_table_compressed[strat] = (steps_named[strat, "S"] + steps_named[strat, "N"] + steps_named[strat, "F"] + steps_named[strat, "L"]) / 4
 end
-compressed_cost_table = Dict()
+a_cost_table_compressed = Dict()
 for strat in ["S", "N", "L", "F"]
-    compressed_cost_table[strat] = (total_cost_table[strat, "S"] + total_cost_table[strat, "N"] + total_cost_table[strat, "F"] + total_cost_table[strat, "L"]) / 4
+    a_cost_table_compressed[strat] = (total_named[strat, "S", "a"] + total_named[strat, "N", "a"] + total_named[strat, "F", "a"] + total_named[strat, "L", "a"]) / 4
 end
 
-println("Steps:")
-for (k, v) in steps_table.compressed
+b_cost_table_compressed = Dict()
+for strat in ["S", "N", "L", "F"]
+    b_cost_table_compressed[strat] = (total_named[strat, "S", "b"] + total_named[strat, "N", "b"] + total_named[strat, "F", "b"] + total_named[strat, "L", "b"]) / 4
+end
+
+println("steps compressed:")
+for (k, v) in steps_table_compressed
     print_mean_etc(v; title=k, scale=1)
 end
 
-println("Total:")
-for (k, v) in total_cost_table.compressed
-    print_mean_etc(v; title=k, scale=10)
+println("a costs compressed:")
+for (k, v) in a_cost_table_compressed
+    print_mean_etc(v; title=k, scale=1)
+end
+
+println("b costs compressed:")
+for (k, v) in b_cost_table_compressed
+    print_mean_etc(v; title=k, scale=1)
 end

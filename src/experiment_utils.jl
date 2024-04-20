@@ -486,8 +486,8 @@ function gen_cost_per_step_table(processed_results, modes_sorted; property=:tota
        P2-Follower  7  8  9			10
     ```
     if haskey(cost_table, (1, "a"))
-        named_costs["S", "S", "a"] = cost_table[1, "a"]
-        named_costs["S", "S", "b"] = cost_table[1, "b"]
+        named_costs["S", "S", "a"] = (cost_table[1, "a"] + cost_table[1, "b"]) / 2
+        named_costs["S", "S", "b"] = (cost_table[1, "a"] + cost_table[1, "b"]) / 2
     end
     if haskey(cost_table, (2, "a"))
         named_costs["S", "N", "a"] = cost_table[2, "a"]
@@ -506,8 +506,8 @@ function gen_cost_per_step_table(processed_results, modes_sorted; property=:tota
         named_costs["N", "S", "b"] = cost_table[2, "a"]
     end
     if haskey(cost_table, (3, "a"))
-        named_costs["N", "N", "a"] = cost_table[3, "a"]
-        named_costs["N", "N", "b"] = cost_table[3, "b"]
+        named_costs["N", "N", "a"] = (cost_table[3, "a"] + cost_table[3, "b"]) / 2
+        named_costs["N", "N", "b"] = (cost_table[3, "a"] + cost_table[3, "b"]) / 2
     end
     if haskey(cost_table, (5, "a"))
         named_costs["N", "L", "a"] = cost_table[5, "a"]
@@ -526,8 +526,8 @@ function gen_cost_per_step_table(processed_results, modes_sorted; property=:tota
         named_costs["L", "N", "b"] = cost_table[5, "a"]
     end
     if haskey(cost_table, (6, "a"))
-        named_costs["L", "L", "a"] = cost_table[6, "a"]
-        named_costs["L", "L", "b"] = cost_table[6, "b"]
+        named_costs["L", "L", "a"] = (cost_table[6, "a"] + cost_table[6, "b"]) / 2
+        named_costs["L", "L", "b"] = (cost_table[6, "a"] + cost_table[6, "b"]) / 2
     end
     if haskey(cost_table, (9, "a"))
         named_costs["L", "F", "a"] = cost_table[9, "a"]
@@ -546,8 +546,8 @@ function gen_cost_per_step_table(processed_results, modes_sorted; property=:tota
         named_costs["F", "L", "b"] = cost_table[9, "a"]
     end
     if haskey(cost_table, (10, "a"))
-        named_costs["F", "F", "a"] = cost_table[10, "a"]
-        named_costs["F", "F", "b"] = cost_table[10, "b"]
+        named_costs["F", "F", "a"] = (cost_table[10, "a"] + cost_table[10, "b"]) / 2
+        named_costs["F", "F", "b"] = (cost_table[10, "a"] + cost_table[10, "b"]) / 2
     end
 
     function make_matrices(named_costs; player="a")

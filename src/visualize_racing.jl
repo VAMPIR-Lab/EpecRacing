@@ -1,4 +1,4 @@
-function animate(params, sim_results; save=false, filename="test.mp4", sleep_duration=3e-1, mode=1, road=nothing, lat=5.0)
+function animate(params, sim_results; save=false, filename="test.mp4", sleep_duration=1e-1, mode=1, road=nothing, lat=5.0)
     mode_str = [
         1 => "S - S"
         2 => "S - N"
