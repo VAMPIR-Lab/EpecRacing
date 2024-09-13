@@ -618,7 +618,7 @@ function get_scaled_interval(costs_mean, costs_CI; scale=1.0)
     m95l, m95u
 end
 
-function print_mean_etc(vals; title="", scale=1.0, sigdigits=3)
+function print_mean_etc(vals; title="", scale=1.0, sigdigits=4)
     vals = vals .* scale
     CI = 1.96 * std(vals) / sqrt(length(vals))
     m = mean(vals)
