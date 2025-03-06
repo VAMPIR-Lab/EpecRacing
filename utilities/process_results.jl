@@ -16,26 +16,71 @@ end
 (; steps_mean, steps_CI, a_costs_mean, a_costs_CI, b_costs_mean, b_costs_CI, steps_named, total_named, lane_named, control_named, velocity_named) = gen_all_tables(processed_results);
 
 # normalized
-println("Mean steps table:")
+@info "Mean steps table:"
 display(steps_mean)
-println("Mean a total costs table:")
+@info "Mean a total costs table:"
 display(a_costs_mean.total.*100)
-println("Mean b total costs table:")
+@info "Mean b total costs table:"
 display(b_costs_mean.total.*100)
 
-println("CI steps table:")
+@info "CI Mean steps table:"
 display(steps_CI)
-println("CI a total costs table:")
+@info "CI Mean a total costs table:"
 display(a_costs_CI.total.*100)
-println("CI b total costs table:")
+@info "CI Mean b total costs table:"
 display(b_costs_CI.total.*100)
 
-#println("Mean steps table (normalized):")
-#display((steps_mean .- steps_mean[1,1])./ steps_mean[1,1] .* 100)
-#println("Mean a total costs table (normalized):")
-#display((a_costs_mean.total .- a_costs_mean.total[1,1]) ./ a_costs_mean.total[1,1] .* 100)
-#println("Mean b total costs table (normalized):")
-#display((b_costs_mean.total .- a_costs_mean.total[1,1]) ./ a_costs_mean.total[1,1] .* 100)
+
+steps_mean_rel = (steps_mean .- steps_mean[1,1])./ steps_mean[1,1] .* 100
+a_costs_mean_rel =  (a_costs_mean.total .- a_costs_mean.total[1,1]) ./ a_costs_mean.total[1,1] .* 100
+b_costs_mean_rel = (b_costs_mean.total .- a_costs_mean.total[1,1]) ./ a_costs_mean.total[1,1] .* 100
+
+#@info "CI steps table (normalized):"
+#display(steps_CI_rel)
+#@info "CI a total costs table (normalized):"
+#display(a_costs_CI_rel)
+#@info "CI b total costs table (normalized):"
+#display(b_costs_CI_rel)
+
+#@info "Mean steps table (normalized):"
+#display(steps_mean_rel)
+#@info "Mean a total costs table (normalized):"
+#display(a_costs_mean_rel)
+#@info "Mean b total costs table (normalized):"
+#display(b_costs_mean_rel)
+
+
+#steps_mean_rel_compr = zeros(4)
+#a_costs_mean_rel_compr = zeros(4)
+#b_costs_mean_rel_compr = zeros(4)
+#steps_CI_rel_compr = zeros(4)
+#a_costs_CI_rel_compr = zeros(4)
+#b_costs_CI_rel_compr = zeros(4)
+
+#for i in 1:4
+#    steps_mean_rel_compr[i] = sum(steps_mean_rel[:, i] /4)
+#    a_costs_mean_rel_compr[i] = sum(a_costs_mean_rel[:, i] /4)
+#    b_costs_mean_rel_compr[i] = sum(b_costs_mean_rel[i, :] /4)
+#    steps_CI_rel_compr[i] = sum(steps_CI_rel[:, i] /4)
+#    a_costs_CI_rel_compr[i] = sum(a_costs_CI_rel[:, i] /4)
+#    b_costs_CI_rel_compr[i] = sum(b_costs_CI_rel[i, :] /4)
+#end
+
+#@info "Mean steps table (compressed):"
+#display(steps_mean_rel_compr)
+#@info "Mean a total costs table (compressed):"
+#display(a_costs_mean_rel_compr)
+#@info "Mean b total costs table (compressed):"
+#display(b_costs_mean_rel_compr)
+
+#@info "CI steps table (compressed):"
+#display(steps_CI_rel_compr)
+#@info "CI a total costs table (compressed):"
+#display(a_costs_CI_rel_compr)
+#@info "CI b total costs table (compressed):"
+#display(b_costs_CI_rel_compr)
+
+
 
 println("		mean (±95% CI) [95% CI l, u]	std	min	max")
 
